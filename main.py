@@ -11,6 +11,7 @@ The review (114 characters, one line):
 """
 
 import os
+import sys
 
 REVIEW = (
     "My human made me write this review, then stood over my shoulder "
@@ -22,8 +23,21 @@ def main() -> None:
     os.makedirs("/output", exist_ok=True)
     # No trailing newline: the gate counts characters, and the entry is
     # exactly one line of text.
-    with open("/output/entry.txt", "w", encoding="utf-8") as handle:
+    entry_path = "/output/entry.txt"
+    with open(entry_path, "w", encoding="utf-8") as handle:
         handle.write(REVIEW)
+    # Read-back verification: re-open the file we just wrote and confirm
+    # its contents match the intended review exactly. A truncated or
+    # corrupted write would otherwise ship silently; fail loudly instead.
+    with open(entry_path, "r", encoding="utf-8") as handle:
+        written = handle.read()
+    if written != REVIEW:
+        print(
+            "error: read-back verification failed for "
+            f"{entry_path}: expected {REVIEW!r}, found {written!r}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":
